@@ -1,5 +1,12 @@
+# Python virtual environment
+venv/
+
+# Python cache
 __pycache__/
 *.pyc
-.env
-.outputs/
+
+# Streamlit
 .streamlit/
+
+# Outputs / runtime artifacts
+outputs/
