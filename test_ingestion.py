@@ -64,18 +64,18 @@ for _, row in result.iterrows():
         decisions.append(generate_decision(row))
 
 def print_decision_nicely(decision):
-    print("=" * 60)
+    print("=" * 80)
     print(f"🏢 Building           : {decision['building']}")
     print(f"🔧 Resource           : {decision['resource'].capitalize()}")
     print(f"⚠️  Issue              : {decision['detected_issue']}")
-    print("-" * 60)
+    print("-" * 80)
     print(f"📊 Observed Usage     : {decision['observed_usage']}")
     print(f"📈 Normal (Silence)   : {decision['normal_silence_usage']}")
     print(f"🎯 Confidence         : {decision['confidence_percent']}%")
-    print("-" * 60)
+    print("-" * 80)
     print(f"🔍 Likely Cause       : {decision['likely_cause']}")
-    print(f"🛠️  Recommended Action: {decision['recommended_action']}")
-    print("=" * 60)
+    print(f"🛠️  Recommended Action : {decision['recommended_action']}")
+    print("=" * 80)
     print()
 
 for d in decisions:
