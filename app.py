@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 
+from pipeline.baseline_ml import compute_silence_baseline_ml
+
+
 from pipeline.ingestion import load_schedule
 from pipeline.scheduler import get_time_window
 from pipeline.silence_detection import mark_silence_windows
@@ -62,6 +65,8 @@ st.sidebar.header("⚙️ Simulation Controls")
 run_one_cycle = st.sidebar.button("▶ Run ONE Cycle (30 min)")
 run_one_day = st.sidebar.button("⏩ Run ALL Cycles (1 Day)")
 
+
+
 st.sidebar.caption("Each cycle represents a scheduled 30-minute run")
 
 
@@ -69,6 +74,18 @@ st.sidebar.caption("Each cycle represents a scheduled 30-minute run")
 # Load Schedule
 # ============================================================
 schedule = load_schedule("data/demo/schedule.csv")
+
+# ============================================================
+# Train ML baseline ONCE using full historical silence data
+# ============================================================
+
+if "baseline_df" not in st.session_state:
+
+    full_df = st.session_state.usage_df.copy()
+    full_df = mark_silence_windows(full_df, schedule)
+
+    st.session_state.baseline_df = compute_silence_baseline_ml(full_df)
+
 
 
 # ============================================================
@@ -99,7 +116,9 @@ def run_single_cycle():
     # 3️⃣ Baseline from historical data
     historical_df = usage_df[usage_df["timestamp"] < current_time]
     historical_df = mark_silence_windows(historical_df, schedule)
-    baseline = compute_silence_baseline(historical_df)
+    # baseline = compute_silence_baseline(historical_df)
+    baseline = st.session_state.baseline_df
+
 
     # 4️⃣ Anomaly detection
     result = detect_shadow_waste(window_df, baseline)
