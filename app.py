@@ -112,6 +112,11 @@ def run_single_cycle():
     for _, row in result.iterrows():
         if row["is_anomaly"]:
             decision = generate_decision(row)
+            # ---- enforce schema ----
+            decision["building"] = row.get("building")
+            decision["resource"] = row.get("resource")
+            decision["usage"] = row.get("usage")
+            decision["baseline"] = row.get("baseline_usage")
             decision["cycle"] = st.session_state.cycle_count
             decision["run_time"] = current_time
             st.session_state.decision_history.append(decision)
@@ -153,7 +158,11 @@ if run_one_day:
 st.divider()
 st.header("📊 Simulation Results")
 
-if not st.session_state.decision_history:
+# if not st.session_state.decision_history:
+#     st.info("Run one or more cycles to view results.")
+#     st.stop()
+
+if not st.session_state.anomaly_history:
     st.info("Run one or more cycles to view results.")
     st.stop()
 
@@ -165,8 +174,13 @@ c1, c2, c3, c4 = st.columns(4)
 
 c1.metric("Total Cycles Run", st.session_state.cycle_count)
 c2.metric("Total Decisions", len(decision_df))
-c3.metric("Buildings Impacted", decision_df["building"].nunique())
-c4.metric("Resources Tracked", decision_df["resource"].nunique())
+
+if not decision_df.empty:
+    c3.metric("Buildings Impacted", decision_df["building"].nunique())
+    c4.metric("Resources Tracked", decision_df["resource"].nunique())
+else:
+    c3.metric("Buildings Impacted", 0)
+    c4.metric("Resources Tracked", 0)
 
 
 # ---------------- Decision Table ----------------
@@ -176,35 +190,50 @@ st.dataframe(decision_df, use_container_width=True)
 
 # ---------------- Graphs ----------------
 st.subheader("🏢 Anomalies by Building")
-st.bar_chart(
-    decision_df.groupby("building").size().reset_index(name="count"),
-    x="building",
-    y="count"
-)
+if "building" in decision_df.columns:
+    building_chart = (
+        decision_df
+        .groupby("building")
+        .size()
+        .reset_index(name="count")
+    )
+    st.bar_chart(building_chart, x="building", y="count")
+else:
+    st.info("No building-level anomaly data available yet.")
+
 
 st.subheader("💧⚡ Anomalies by Resource")
-st.bar_chart(
-    decision_df.groupby("resource").size().reset_index(name="count"),
-    x="resource",
-    y="count"
-)
+if "resource" in decision_df.columns:
+    st.bar_chart(
+        decision_df.groupby("resource").size().reset_index(name="count"),
+        x="resource",
+        y="count"
+    )
+else:
+    st.info("No resource-level anomaly data available yet.")
 
 st.subheader("⏱️ Anomalies Across Cycles")
-st.line_chart(
-    decision_df.groupby("cycle").size().reset_index(name="count"),
-    x="cycle",
-    y="count"
-)
+if "cycle" in decision_df.columns:
+    st.line_chart(
+        decision_df.groupby("cycle").size().reset_index(name="count"),
+        x="cycle",
+        y="count"
+    )
+else:
+    st.info("No cycle-level anomaly data available yet.")
 
 st.subheader("🔥 Concentration of Shadow Waste")
-pivot = pd.pivot_table(
-    decision_df,
-    index="building",
-    columns="resource",
-    values="detected_issue",
-    aggfunc="count",
-    fill_value=0
-)
+if all(col in decision_df.columns for col in ["building", "resource", "detected_issue"]):
+    pivot = pd.pivot_table(
+        decision_df,
+        index="building",
+        columns="resource",
+        values="detected_issue",
+        aggfunc="count",
+        fill_value=0
+    )
+else:
+    pivot = pd.DataFrame({"Info": ["Run cycles to generate data"]})
 
 st.dataframe(pivot, use_container_width=True)
 
