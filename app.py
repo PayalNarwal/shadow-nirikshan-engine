@@ -21,6 +21,10 @@ ELECTRIC_COST_PER_UNIT = 8.0
 if "admin_feedback" not in st.session_state:
     st.session_state.admin_feedback = {}
 
+if "feedback_submitted" not in st.session_state:
+    st.session_state.feedback_submitted = False
+
+
 
 # ============================================================
 # Page config
@@ -668,7 +672,7 @@ st.header("🧾 Admin Anomaly Feedback")
 st.info("Admins can mark anomalies as true waste or false alarms to validate system decisions.")
 
 
-if st.session_state.show_feedback_panel:
+if st.session_state.show_feedback_panel and not st.session_state.feedback_submitted:
 
     if not st.session_state.anomaly_history:
         st.info("Run anomaly cycles first.")
@@ -704,8 +708,8 @@ if st.session_state.show_feedback_panel:
 
             if st.button("💾 Save Feedback"):
 
-                st.session_state.admin_feedback.update(
-                    feedback_updates
-                )
+                st.session_state.admin_feedback.update(feedback_updates)
+                st.session_state.feedback_submitted = True
 
-                st.success("Feedback saved.")
+                st.success("Feedback saved. Table hidden.")
+                st.rerun()
