@@ -204,6 +204,6 @@ To run one complete **analysis cycle** from the terminal:
 ## 🌍 Live Demo
 
 👉 **Streamlit App:**  
-https://shadow-nirikshan-engine.streamlit.app/
+https://shadow-nirikshan-engine-2026.streamlit.app/
 
 *(The demo simulates scheduled analysis cycles and displays detected shadow waste with decisions, analytics, staff mapping, policy simulation, and admin review controls.)*
