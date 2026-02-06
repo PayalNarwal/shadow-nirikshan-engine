@@ -5,6 +5,7 @@ from pipeline.policy_simulator import compute_policy_savings
 
 
 from pipeline.baseline_ml import compute_silence_baseline_ml
+from pipeline.staff_mapper import load_staff_schedule, attach_staff_info
 
 
 from pipeline.ingestion import load_schedule
@@ -63,7 +64,6 @@ if "anomaly_history" not in st.session_state:
 # Sidebar Controls
 # ============================================================
 st.sidebar.header("⚙️ Shadow Waste Controls")
-
 baseline_mode = st.sidebar.radio(
     "Baseline Method",
     ["ML", "Mean"],
@@ -98,6 +98,15 @@ run_one_day = st.sidebar.button("⏩ Run ALL Cycles (1 Day)")
 
 st.sidebar.caption("Each cycle represents a scheduled 30-minute run")
 
+# -------- Staff Responsibility Toggle --------
+
+if "show_staff_panel" not in st.session_state:
+    st.session_state.show_staff_panel = False
+
+if st.sidebar.button("👤 Staff Responsibility"):
+    st.session_state.show_staff_panel = not st.session_state.show_staff_panel
+
+
 # -------- Policy Simulation Toggle --------
 
 if "show_policy_panel" not in st.session_state:
@@ -111,6 +120,7 @@ if st.sidebar.button("🏛️ Policy Simulation"):
 # Load Schedule
 # ============================================================
 schedule = load_schedule("data/demo/schedule.csv")
+staff_schedule = load_staff_schedule("data/demo/staff_schedule.csv")
 
 # ============================================================
 # Train ML baseline ONCE using full historical silence data
@@ -169,6 +179,9 @@ def run_single_cycle():
     # 4️⃣ Anomaly detection
     result = detect_shadow_waste(window_df, baseline)
     result["run_time"] = current_time
+
+    # 🔥 Attach staff responsibility
+    result = attach_staff_info(result, staff_schedule)
 
     st.session_state.anomaly_history.append(result)
 
@@ -303,18 +316,66 @@ else:
         "All analytics are generated from simulated scheduled runs in this session."
     )
 
+
 # ============================================================
-# Policy Simulation Section (Always Visible Header)
+# Staff Responsibility Panel
+# ============================================================
+st.divider()
+st.header("👤 Staff Responsibility Mapping")
+st.info("Maps detected anomalies to on-duty staff and aggregates waste impact.")
+
+if st.session_state.show_staff_panel:
+
+    run_staff_map = st.button("▶ Generate Staff Responsibility Report")
+
+    if run_staff_map and not st.session_state.anomaly_history:
+        st.warning("Run anomaly detection cycles first.")
+
+    if run_staff_map and st.session_state.anomaly_history:
+
+        anomaly_all = pd.concat(st.session_state.anomaly_history)
+
+        # keep only real silence anomalies with baseline
+        anomaly_all = anomaly_all[
+            (anomaly_all["is_anomaly"] == True) &
+            (anomaly_all["is_silence"] == True) &
+            (~anomaly_all["baseline_usage"].isna())
+        ].copy()
+        st.write("Total anomaly rows:", len(anomaly_all))
+
+
+        if anomaly_all.empty:
+            st.info("No anomaly rows available.")
+        else:
+            anomaly_all["excess_usage"] = (
+                anomaly_all["usage"] - anomaly_all["baseline_usage"]
+            ).clip(lower=0)
+
+            staff_summary = (
+                anomaly_all
+                .groupby(
+                    ["staff_name", "staff_role", "staff_phone", "building"]
+                )
+                .agg(
+                    anomaly_count=("usage", "count"),
+                    total_excess_usage=("excess_usage", "sum")
+                )
+                .reset_index()
+                .sort_values("total_excess_usage", ascending=False)
+            )
+
+            st.subheader("📋 Staff Accountability Table")
+            st.dataframe(staff_summary, use_container_width=True)
+
+
+# ============================================================
+# Policy Simulation Panel (Right Side)
 # ============================================================
 
 st.divider()
 st.header("🏛️ Policy Simulation")
 st.info("Configure policy rules and simulate resource savings after anomaly detection runs.")
 
-
-# ============================================================
-# Policy Simulation Panel (Right Side)
-# ============================================================
 
 if st.session_state.show_policy_panel:
 
@@ -438,3 +499,4 @@ if st.session_state.show_policy_panel:
         c5.metric("💧 Water Anomalies", water_anomalies)
         c6.metric("⚡ Electric Anomalies", electric_anomalies)
         # c7.metric("🚫 Total Silence Anomalies", preventable_events)
+
