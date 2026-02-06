@@ -111,16 +111,17 @@ def run_single_cycle():
     st.session_state.cycle_count += 1
     for _, row in result.iterrows():
         if row["is_anomaly"]:
-            decision = generate_decision(row)
-            # ---- enforce schema ----
-            decision["building"] = row.get("building")
-            decision["resource"] = row.get("resource")
-            decision["usage"] = row.get("usage")
-            decision["baseline"] = row.get("baseline_usage")
-            decision["cycle"] = st.session_state.cycle_count
-            decision["run_time"] = current_time
-            st.session_state.decision_history.append(decision)
+            decision_raw = generate_decision(row)
 
+            decision = {
+                "cycle": st.session_state.cycle_count,
+                "run_time": current_time,
+                "building": row.get("building"),
+                "resource": row.get("resource"),
+                **decision_raw
+            }
+
+            st.session_state.decision_history.append(decision)
     # Advance time
     st.session_state.current_time += timedelta(minutes=30)
     return True

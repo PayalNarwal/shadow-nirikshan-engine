@@ -23,12 +23,12 @@ def generate_decision(row):
     decision = {
         "building": building,
         "resource": resource,
-        "detected_issue": "Usage during inactivity",
         "observed_usage": round(usage, 2),
         "normal_silence_usage": round(baseline, 2),
         "confidence_percent": confidence,
         "likely_cause": cause,
-        "recommended_action": action
+        "recommended_action": action,
+        "detected_issue": "Usage during inactivity",
     }
 
     return decision

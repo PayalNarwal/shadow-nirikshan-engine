@@ -57,8 +57,8 @@ while current_time <= end_time:
     # 4️⃣ Anomaly detection
     result = detect_shadow_waste(window_df, baseline)
 
-    print("\n[Anomaly Detection Output]")
-    print(result)
+    # print("\n[Anomaly Detection Output]")
+    # print(result)
 
     # Store anomalies
     # and result["is_anomaly"]= True
