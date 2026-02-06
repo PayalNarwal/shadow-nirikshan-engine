@@ -61,23 +61,34 @@ It is a **decision support system**, not just a monitoring dashboard.
 ## 🏗️ System Architecture
 
 Raw Data
+
 ↓
+
 Schedule & Silence Window Detection
+
 ↓
+
 Baseline Learning (ML / Statistical)
+
 ↓
+
 Shadow Waste Detection
+
 ↓
+
 Decision Generation
+
 ↓
+
 Staff Responsibility Mapping
+
 ↓
+
 Policy Simulation Engine
+
 ↓
+
 Admin Review & Validation Layer
-
-
----
 
 
 ---
