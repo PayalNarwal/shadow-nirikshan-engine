@@ -62,6 +62,33 @@ if "anomaly_history" not in st.session_state:
 # ============================================================
 st.sidebar.header("⚙️ Simulation Controls")
 
+baseline_mode = st.sidebar.radio(
+    "Baseline Method",
+    ["ML", "Mean"],
+    index=0
+)
+
+# ---------------- RESET WHEN BASELINE MODE CHANGES ----------------
+
+if "last_baseline_mode" not in st.session_state:
+    st.session_state.last_baseline_mode = baseline_mode
+
+if st.session_state.last_baseline_mode != baseline_mode:
+
+    # reset simulation state
+    st.session_state.cycle_count = 0
+    st.session_state.decision_history = []
+    st.session_state.anomaly_history = []
+
+    usage_df = st.session_state.usage_df
+    st.session_state.current_time = (
+        usage_df["timestamp"].min() + timedelta(minutes=30)
+    )
+
+    st.session_state.last_baseline_mode = baseline_mode
+
+    st.sidebar.success("Simulation reset due to baseline change")
+
 run_one_cycle = st.sidebar.button("▶ Run ONE Cycle (30 min)")
 run_one_day = st.sidebar.button("⏩ Run ALL Cycles (1 Day)")
 
@@ -79,12 +106,18 @@ schedule = load_schedule("data/demo/schedule.csv")
 # Train ML baseline ONCE using full historical silence data
 # ============================================================
 
-if "baseline_df" not in st.session_state:
+if "baseline_ml_df" not in st.session_state:
 
     full_df = st.session_state.usage_df.copy()
     full_df = mark_silence_windows(full_df, schedule)
 
-    st.session_state.baseline_df = compute_silence_baseline_ml(full_df)
+    st.session_state.baseline_ml_df = compute_silence_baseline_ml(full_df)
+    st.session_state.baseline_mean_df = compute_silence_baseline(full_df)
+
+# DEBUG — compare baselines
+# st.write("ML baseline", st.session_state.baseline_ml_df)
+# st.write("Mean baseline", st.session_state.baseline_mean_df)
+
 
 
 
@@ -116,8 +149,11 @@ def run_single_cycle():
     # 3️⃣ Baseline from historical data
     historical_df = usage_df[usage_df["timestamp"] < current_time]
     historical_df = mark_silence_windows(historical_df, schedule)
-    # baseline = compute_silence_baseline(historical_df)
-    baseline = st.session_state.baseline_df
+    if baseline_mode == "ML":
+        baseline = st.session_state.baseline_ml_df
+    else:
+        baseline = st.session_state.baseline_mean_df
+
 
 
     # 4️⃣ Anomaly detection
