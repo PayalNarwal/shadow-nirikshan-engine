@@ -35,7 +35,7 @@ def detect_shadow_waste(
 
         threshold = THRESHOLDS.get(row["resource"], 1.5)
 
-        if row["usage"] > baseline * threshold:
+        if row["usage"] > 4 * baseline * threshold:
             merged.at[idx, "is_anomaly"] = True
             # print(f"Anomaly detected: {row['building']} - {row['resource']} | Usage: {row['usage']} vs Baseline: {baseline:.2f}")
 

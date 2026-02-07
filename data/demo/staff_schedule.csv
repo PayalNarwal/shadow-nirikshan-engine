@@ -1,0 +1,19 @@
+building,start_time,end_time,staff_name,role,phone
+Lab-A,08:00,16:00,Rajesh Kumar,Lab Supervisor,9876543210
+Lab-A,16:00,08:00,Neha Singh,Shift Incharge,9123456780
+
+Library,06:00,14:00,Amit Verma,Librarian,9988776655
+Library,14:00,22:00,Pooja Das,Assistant Librarian,9090909090
+Library,22:00,06:00,Surinder Singh,Security Desk,9000000001
+
+Admin-Block,09:00,17:00,Suresh Patel,Admin Officer,9011111111
+Admin-Block,17:00,09:00,Meera Jain,Duty Officer,9022222222
+
+Hostel-A,00:00,12:00,Sunil Yadav,Warden,9033333333
+Hostel-A,12:00,00:00,Kavita Sharma,Deputy Warden,9044444444
+
+Auditorium,10:00,18:00,Arjun Das,Facility Manager,9055555555
+Auditorium,18:00,10:00,Neha Mehta,Evening Staff,9066666666
+
+Cafeteria,06:00,14:00,Ritu Sharma,Cafeteria Manager,9077777777
+Cafeteria,14:00,06:00,Vikram Singh,Shift Manager,9088888888
